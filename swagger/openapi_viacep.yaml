@@ -1,0 +1,168 @@
+openapi: 3.0.3
+info:
+  title: 'Consulta de CEP'
+  description: |-
+    Webservice gratuito de alto desempenho para consulta de Código de Endereçamento Postal (CEP) do Brasil.
+  version: 1.0.0
+externalDocs:
+  description: ViaCEP
+  url: 'https://viacep.com.br/'
+servers:
+  - url: 'https://viacep.com.br/ws/'
+tags: 
+  - name: cep
+paths:
+  /cep/{cep}/{formato}:
+    get:
+      summary: 'Consulta CEP'
+      description: 'Retorna informações de um CEP específico.'
+      parameters:
+        - name: cep
+          in: path
+          required: true
+          description: 'CEP a ser consultado (8 dígitos)'
+          schema:
+            type: string
+            pattern: '^[0-9]{8}$'
+        - name: formato
+          in: path
+          required: true
+          description: 'Formato de retorno (json ou xml)'
+          schema:
+            type: string
+            enum:
+              - json
+              - xml
+      responses:
+        '200':
+          description: 'Sucesso'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CepResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/CepResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: CEP não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /busca/{uf}/{cidade}/{logradouro}/{formato}:
+    get:
+      summary: 'Pesquisa CEP por endereço'
+      description: 'Retorna uma lista de CEPs que correspondem ao endereço especificado.'
+      parameters:
+        - name: uf
+          in: path
+          required: true
+          description: 'Unidade Federativa (sigla de 2 caracteres)'
+          schema:
+            type: string
+            pattern: '^[A-Z]{2}$'
+        - name: 'cidade'
+          in: path
+          required: true
+          description: 'Cidade (mínimo 3 caracteres)'
+          schema:
+            type: string
+            minLength: 3
+        - name: 'logradouro'
+          in: path
+          required: true
+          description: 'Logradouro (mínimo 3 caracteres)'
+          schema:
+            type: string
+            minLength: 3
+        - name: formato
+          in: path
+          required: true
+          description: 'Formato de retorno (json ou xml)'
+          schema:
+            type: string
+            enum:
+              - json
+              - xml
+      responses:
+        200:
+          description: 'Sucesso'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CepResponse'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CepResponseXml'
+        400:
+          description: 'Bad Request (parâmetro inválido ou formato não suportado)'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    CepResponse:
+      type: object
+      properties:
+        cep:
+          type: string
+          description: 'CEP'
+        logradouro:
+          type: string
+          description: 'Logradouro'
+        complemento:
+          type: string
+          description: 'Complemento'
+        bairro:
+          type: string
+          description: 'Bairro'
+        localidade:
+          type: string
+          description: 'Cidade'
+        uf:
+          type: string
+          description: 'Unidade federativa'
+    CepResponseXml:
+      type: object
+      properties:
+        cep:
+          type: string
+          xml:
+            name: 'cep'
+        logradouro:
+          type: string
+          xml:
+            name: 'logradouro'
+        complemento:
+          type: string
+          xml:
+            name: 'complemento'
+        bairro:
+          type: string
+          xml:
+            name: 'bairro'
+        localidade:
+          type: string
+          xml:
+            name: 'localidade'
+        uf:
+          type: string
+          xml:
+            name: 'uf'
+    ErrorResponse:
+      type: object
+      properties: 
+        erro:
+          type: boolean
+          description: 'Indica se houve um erro (true) ou não (false)'
